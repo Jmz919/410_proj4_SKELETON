@@ -24,7 +24,10 @@ void Logger::log(std::string data) {
 
 	std::string myline;
 
-	myFile << data;
+	if (myFile.is_open()) {
+		lock_guard<mutex> lock(m);
+		myFile << data;	
+	}
 
 	//close file
 	if (myFile.is_open())
