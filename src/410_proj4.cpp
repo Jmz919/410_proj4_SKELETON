@@ -86,7 +86,31 @@ void audit_results() {
 
 int main()
 {
-	//TODO your code here
+	vector<thread> thread_vec;
+//	int num_of_cores = std::thread::hardware_concurrency()/2;
+//	for (int i = 0; i < num_of_cores; i++) {
+//		if (i < num_of_cores/2) {
+//			thread_vec.push_back(thread(doWaiter, i, "./in3.txt"));
+//		}
+//		else {
+//			thread_vec.push_back(thread(doBaker, i));
+//		}
+//	}
+
+	thread_vec.push_back(thread(doWaiter, 1, "./in1.txt"));
+	thread_vec.push_back(thread(doWaiter, 2, "./in2.txt"));
+	thread_vec.push_back(thread(doWaiter, 3, "./in3.txt"));
+	thread_vec.push_back(thread(doBaker, 4));
+	thread_vec.push_back(thread(doBaker, 5));
+	thread_vec.push_back(thread(doBaker, 6));
+
+	this_thread::sleep_for(chrono::milliseconds(3000));
+
+	for(auto& t : thread_vec) {
+		t.join();
+	}
+
+	audit_results();
 	return SUCCESS;
 }
 

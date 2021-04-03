@@ -31,6 +31,9 @@ void Baker::bake_and_box(ORDER &anOrder) {
 	}
 	// Add last box that is not full to boxes for order
 	anOrder.boxes.push_back(myBox);
+
+	lock_guard<mutex> lock(mutex_order_outQ);
+	order_out_Vector.push_back(anOrder);
 }
 
 //as long as there are orders in order_in_Q then
@@ -44,8 +47,8 @@ void Baker::bake_and_box(ORDER &anOrder) {
 //when either order_in_Q.size() > 0 or b_WaiterIsFinished == true
 //hint: wait for something to be in order_in_Q or b_WaiterIsFinished == true
 void Baker::beBaker() {
-	std::unique_lock<std::mutex> lock(mutex_order_inQ);
 	while (!order_in_Q.size() > 0 && !b_WaiterIsFinished) {
+		std::unique_lock<std::mutex> lock(mutex_order_inQ);
 		cv_order_inQ.wait(lock);
 	}
 
