@@ -26,10 +26,12 @@ int Waiter::getNext(ORDER &anOrder){
 void Waiter::beWaiter() {
 	ORDER myOrder;
 	while (Waiter::getNext(myOrder) == SUCCESS) {
-		lock_guard<mutex> lock(mutex_order_inQ);
+		unique_lock<mutex> lock(mutex_order_inQ);
 		order_in_Q.push(myOrder);
+		cout << "Waiter took order" << endl;
+		cv_order_inQ.notify_all();
 	}
 	b_WaiterIsFinished = true;
-	cv_order_inQ.notify_all();
+	cout << "Waiter is done" << endl;
 }
 

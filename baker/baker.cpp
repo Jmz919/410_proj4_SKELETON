@@ -47,15 +47,27 @@ void Baker::bake_and_box(ORDER &anOrder) {
 //when either order_in_Q.size() > 0 or b_WaiterIsFinished == true
 //hint: wait for something to be in order_in_Q or b_WaiterIsFinished == true
 void Baker::beBaker() {
-	while (!order_in_Q.size() > 0 && !b_WaiterIsFinished) {
-		std::unique_lock<std::mutex> lock(mutex_order_inQ);
-		cv_order_inQ.wait(lock);
-	}
+	while (true) {
+		// Set up lock guard to protect from redoing orders
+		unique_lock<mutex> lock(mutex_order_inQ);
+		while (order_in_Q.size() == 0 && !b_WaiterIsFinished) {
+			cv_order_inQ.wait(lock);
+		}
 
-	while (order_in_Q.size() > 0) {
-		lock_guard<mutex> lock(mutex_order_inQ);
-		ORDER myOrder = order_in_Q.front();
-		order_in_Q.pop();
-		Baker::bake_and_box(myOrder);
+		if (order_in_Q.size() == 0 && b_WaiterIsFinished) {
+			break;
+		}
+
+		if (order_in_Q.size() > 0) {
+//			unique_lock<mutex> outLock(mutex_order_outQ);
+			// Get first order available in the order_in_Q
+			ORDER myOrder = order_in_Q.front();
+			order_in_Q.pop();
+
+			// Bake and box the order
+			Baker::bake_and_box(myOrder);
+
+			cout << "Baker " << id << " finished boxing an order" << endl;
+		}
 	}
 }
