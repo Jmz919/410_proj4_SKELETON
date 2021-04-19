@@ -25,12 +25,17 @@ int Waiter::getNext(ORDER &anOrder){
 //it is done using b_WaiterIsFinished
 void Waiter::beWaiter() {
 	ORDER myOrder;
+	// Keep getting orders from a file until there are no more orders to get
 	while (Waiter::getNext(myOrder) == SUCCESS) {
 		unique_lock<mutex> lock(mutex_order_inQ);
+		// Add the order to the order_in_Q for the baker to bake and box
 		order_in_Q.push(myOrder);
 		cout << "Waiter took order" << endl;
+		// Notify bakers to start bake and boxing donuts
 		cv_order_inQ.notify_all();
 	}
+
+	// Signal that the waiter is finished
 	b_WaiterIsFinished = true;
 	cout << "Waiter is done" << endl;
 }
