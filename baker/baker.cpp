@@ -32,8 +32,6 @@ void Baker::bake_and_box(ORDER &anOrder) {
 
 	// Add last box that is not full to boxes for order
 	anOrder.boxes.push_back(myBox);
-
-	order_out_Vector.push_back(anOrder);
 }
 
 //as long as there are orders in order_in_Q then
@@ -51,24 +49,27 @@ void Baker::beBaker() {
 		// Set up lock guard to protect from redoing orders
 		unique_lock<mutex> lock(mutex_order_inQ);
 
-		// If no more orders and waiter is finished taking orders then exit loop
-		if (order_in_Q.size() == 0 && b_WaiterIsFinished) {
+		// If no more orders and waiter is finished taking orders then exit loop and finish processing
+		if (order_in_Q.empty() && b_WaiterIsFinished) {
 			break;
 		}
 
 		// If no current orders and waited is not finished then wait for orders
-		while (order_in_Q.size() == 0 && !b_WaiterIsFinished) {
+		while (order_in_Q.empty() && !b_WaiterIsFinished) {
 			cv_order_inQ.wait(lock);
 		}
 
-		if (order_in_Q.size() > 0) {
+		if (!order_in_Q.empty()) {
 			// Get first order available in the order_in_Q
 			ORDER myOrder = order_in_Q.front();
 			order_in_Q.pop();
 
 			// Bake and box the order
-			Baker::bake_and_box(myOrder);
-			cout << "Baker " << id << " finished boxing an order" << endl;
+			this->bake_and_box(myOrder);
+
+			// Add to order out vector
+			lock_guard<mutex> outLock(mutex_order_outQ);
+			order_out_Vector.push_back(myOrder);
 		}
 	}
 }
